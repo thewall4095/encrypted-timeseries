@@ -17,9 +17,15 @@ const encryptionService = () => {
         return decrypted.toString();
     }
 
+    const createSHA256Hash = (text) => {
+        const hash = crypto.createHash('sha256');
+        return hash.update(text, 'utf-8').digest('hex')
+    }
+
     return {
         encrypt,
-        decrypt
+        decrypt,
+        createSHA256Hash
     };
 }
 
