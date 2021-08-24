@@ -2,12 +2,12 @@ var client = require("socket.io-client");
 var socket = client.connect("http://localhost:3000");
 const sampledata = require('../data');
 const encryptionService = require("./encryption");
-const EMITTERINTERVAL = 1000;
+const EMITTERINTERVAL = 10000;
 const emitterService = () => {
     const startEmitter = (KEY, IV) => {
         try {
             setInterval(() => {
-                const numMessages = getRandomInt(1, 2);
+                const numMessages = getRandomInt(1, 5);
                 console.log(numMessages, 'numMessages');
                 let encryptedMessage = '';
                 for (var i = 0; i < numMessages; i++) {
@@ -19,7 +19,7 @@ const emitterService = () => {
                     const sumCheckMessage = Object.assign(originalMessage, {
                         secret_key: encryptionService().createSHA256Hash(JSON.stringify(originalMessage))
                     });
-                    console.log(sumCheckMessage);
+                    // console.log(sumCheckMessage);
                     encryptedMessage += encryptionService().encrypt(KEY, IV, JSON.stringify(sumCheckMessage)).encryptedData + '|';
                 }
                 socket.emit('message', encryptedMessage);

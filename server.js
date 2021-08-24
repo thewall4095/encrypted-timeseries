@@ -7,7 +7,6 @@ const app = express();
 const http = require('http');
 const socketIO = require('socket.io');
 const crypto = require("crypto");
-
 // Exported routers
 const routers = require("./routes/index");
 
@@ -17,6 +16,8 @@ const IV = crypto.randomBytes(16);
 
 const emitterService = require("./services/emitter");
 const encryptionService = require("./services/encryption");
+const dbService = require("./services/db");
+const dbOperationService = require("./services/db_operation");
 
 
 
@@ -53,17 +54,30 @@ io.on('connection', (socket) => {
   });
 
   socket.on('message', (msg) => {
+    // dbOperationService().insertToDB();
     const encryptedMessages = msg.split('|');
     const numMessages = encryptedMessages.length - 1; //since last element will be ''
     console.log(numMessages, 'numMessages');
+    let decryptedMessages = [];
     for (var i = 0; i < numMessages; i++) {
-      console.log('message: ' + encryptionService().decrypt(KEY, IV, encryptedMessages[i]));
+      const decryptedMessage = JSON.parse(encryptionService().decrypt(KEY, IV, encryptedMessages[i]));
+      const originalMessage = {
+        name:decryptedMessage.name,
+        origin:decryptedMessage.origin,
+        destination:decryptedMessage.destination
+      }
+      // console.log(decryptedMessage, JSON.stringify(originalMessage))
+      // console.log(decryptedMessage.secret_key, decryptedMessage, originalMessage)
+      if(encryptionService().compareSHA256Hash(decryptedMessage.secret_key, JSON.stringify(originalMessage)))
+        decryptedMessages.push(originalMessage)
     }
+    // console.log('message: ' + JSON.stringify(decryptedMessages));
+    dbOperationService().insertToDB(decryptedMessages);
   });
 });
 
+dbService().connectDB();
 emitterService().startEmitter(KEY, IV);
-
 //Start server
 const port = process.env.MAIN_PORT || 3000;
 server.listen(port, () => console.log(`Listening on port ${port}`));
