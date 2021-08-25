@@ -2,7 +2,7 @@ const express = require("express");
 const indexRouter = express.Router();
 
 const { 
-    testApi,
+  getTimeseriesData,
 } = require('../controllers/data')
 
 /* GET home page. */
@@ -10,7 +10,7 @@ indexRouter.get("/", function (req, res, next) {
   return res.send({ title: "apis are up" });
 });
 
-indexRouter.get("/test", testApi);
+indexRouter.get("/getTimeseriesData", getTimeseriesData);
 
 const routers = [
   {

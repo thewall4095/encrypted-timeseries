@@ -1,6 +1,7 @@
 const db = require("../services/connection");
 const redisOperationService = require("../services/redis_operation");
 var moment = require("moment");
+const emitterService = require("../services/emitter");
 
 
 const dbOperationService = () => {
@@ -27,9 +28,11 @@ const dbOperationService = () => {
                 console.log(document.ts, 'before');
                 document.ts = moment(document.ts).toDate();
                 console.log(document.ts, 'after');
-                let a = await collection.insertOne(document);
-                if(a)
+                let insertResponse = await collection.insertOne(document);
+                if(insertResponse){
+                    emitterService().emitToFrontend(document);
                     await redisOperationService().deleteWithKey(key);
+                }
         } catch (err) {
             console.log(err);
         }
@@ -47,7 +50,7 @@ const dbOperationService = () => {
             cachedDataKeys.forEach(async element =>  {
                 let alreadyExistingData = await redisOperationService().retrieve(element);
                 alreadyExistingData = JSON.parse(alreadyExistingData);
-                const dataSourceTime = moment(alreadyExistingData.source); //.toDate();
+                const dataSourceTime = moment(alreadyExistingData.source);
                 const currenttimestamp = moment();
                 const lastMinuteDate = currenttimestamp.subtract({minute: 1});
                 console.log(lastMinuteDate, dataSourceTime);

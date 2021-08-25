@@ -7,7 +7,7 @@ const emitterService = () => {
     const startEmitter = (KEY, IV) => {
         try {
             setInterval(() => {
-                const numMessages = getRandomInt(1, 2);
+                const numMessages = getRandomInt(49, 499);
                 console.log(numMessages, 'numMessages');
                 let encryptedMessage = '';
                 for (var i = 0; i < numMessages; i++) {
@@ -29,8 +29,12 @@ const emitterService = () => {
         }
     };
 
+    const emitToFrontend = (data) => {
+        socket.emit('chart_data', JSON.stringify(data));
+    }
     return {
-        startEmitter
+        startEmitter,
+        emitToFrontend
     };
 }
 
