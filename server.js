@@ -19,7 +19,8 @@ const encryptionService = require("./services/encryption");
 const dbService = require("./services/db");
 const dbOperationService = require("./services/db_operation");
 
-
+const DOCUMENTSAVEINTERVAL = 30000; //half of document timestamp variation of 1 minute
+let timer = null;
 
 const bodyParserLimit = "100mb";
 
@@ -47,17 +48,23 @@ routers.forEach((router) => {
 
 io.on('connection', (socket) => {
 
+  timer = setInterval(() => {
+    dbOperationService().scheduledDbOperation();
+  }, DOCUMENTSAVEINTERVAL);
+
   console.log('auserconnected');
 
   socket.on('disconnect', () => {
     console.log('userdisconnected');
+    clearInterval(timer);
   });
 
   socket.on('message', (msg) => {
-    // dbOperationService().insertToDB();
+    // dbOperationService().insertToCache();
     const encryptedMessages = msg.split('|');
     const numMessages = encryptedMessages.length - 1; //since last element will be ''
     console.log(numMessages, 'numMessages');
+    let corruptedMessages = 0;
     let decryptedMessages = [];
     for (var i = 0; i < numMessages; i++) {
       const decryptedMessage = JSON.parse(encryptionService().decrypt(KEY, IV, encryptedMessages[i]));
@@ -70,9 +77,12 @@ io.on('connection', (socket) => {
       // console.log(decryptedMessage.secret_key, decryptedMessage, originalMessage)
       if(encryptionService().compareSHA256Hash(decryptedMessage.secret_key, JSON.stringify(originalMessage)))
         decryptedMessages.push(originalMessage)
+      else{
+        corruptedMessages+=1;
+      }
     }
     // console.log('message: ' + JSON.stringify(decryptedMessages));
-    dbOperationService().insertToDB(decryptedMessages);
+    dbOperationService().insertToCache({ messagesCount : numMessages, corruptedMessagesCount: corruptedMessages, decryptedMessages : decryptedMessages});
   });
 });
 

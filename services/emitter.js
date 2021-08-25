@@ -7,7 +7,7 @@ const emitterService = () => {
     const startEmitter = (KEY, IV) => {
         try {
             setInterval(() => {
-                const numMessages = getRandomInt(1, 5);
+                const numMessages = getRandomInt(1, 2);
                 console.log(numMessages, 'numMessages');
                 let encryptedMessage = '';
                 for (var i = 0; i < numMessages; i++) {

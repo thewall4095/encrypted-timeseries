@@ -1,54 +1,70 @@
 const db = require("../services/connection");
-const dbService = require("../services/db");
 const redisOperationService = require("../services/redis_operation");
+var moment = require("moment");
 
 
 const dbOperationService = () => {
 
-    const insertToDB = async (data) => {
-        const collection = db.collection("encrypted-timeseries-collection");
-        const timestamp = new Date();
-        const source = timestamp.toISOString().split(":").slice(0,-1).join(":");
-        const collectionTimestamp = new Date(source);
+    const insertToCache = async (data) => {
+        const timestamp = moment().startOf('minute');
+        const source = timestamp.format();
+        const collectionTimestamp = timestamp.toDate();
+        console.log(moment(source).toDate());
         const document = {
             ts : collectionTimestamp,
             source: source,
-            data: data
+            messagesCount: data.messagesCount,
+            corruptedMessagesCount: data.corruptedMessagesCount,
+            data: data.decryptedMessages
         }
-        // if(dbService().checkIfCollectionExists(db, source)){
-        //     const eachMinuteCollection = db.collection(source);
-        //     await eachMinuteCollection.insertOne(document);
-        // }else{
-        //     dbService().createCollection(db, source, {
-        //         timeseries: {
-        //             timeField: "ts",
-        //             metaField: "source",
-        //             granularity: "seconds"
-        //         },
-        //     });
-        // }
-        // console.log(collectionTimestamp)
-        // let a = await collection.updateOne(
-        //     { ts : collectionTimestamp, source: source },
-        //     {
-        //         $push: { data: document.data },
-        //     }, 
-        //     { upsert: true } );
-        // console.log(a, 'inserted');
-        // let checkIfExists = await collection.findOne({ "ts": collectionTimestamp });//.toArray();
-        // console.log(checkIfExists);
-        // if(checkIfExists){
-        //     // checkIfExists.data = [...checkIfExists.data, ...data];
-        //     let a = await collection.updateOne({ ts : collectionTimestamp }, {$push:{data: data}});
-        //     console.log(a, 'updated');
-        // }else{
-        //     let a = await collection.insertOne(document);// .findOneAndUpdate({ "source": source }, {$set:{data: checkIfExists.data}});
-        //     console.log(a, 'inserted');
-        // }
+        let abc = await redisOperationService().save(source, document);
+        console.log(abc, 'saved data');
     };
 
+    const saveToTimeseriesDB = async (key, document) => {
+        try {
+            const collection = db.collection("encrypted-timeseries-collection");
+                console.log(document.ts, 'before');
+                document.ts = moment(document.ts).toDate();
+                console.log(document.ts, 'after');
+                let a = await collection.insertOne(document);
+                if(a)
+                    await redisOperationService().deleteWithKey(key);
+        } catch (err) {
+            console.log(err);
+        }
+    }
+
+    const findTimeseriesDocument = async (source) => {
+        const document = await db.collection("encrypted-timeseries-collection").findOne({ source: source });
+        console.log(document);
+        return document;
+    }
+
+    const scheduledDbOperation = async () => {
+        try {
+            let cachedDataKeys = await redisOperationService().getRedisKeys();
+            cachedDataKeys.forEach(async element =>  {
+                let alreadyExistingData = await redisOperationService().retrieve(element);
+                alreadyExistingData = JSON.parse(alreadyExistingData);
+                const dataSourceTime = moment(alreadyExistingData.source); //.toDate();
+                const currenttimestamp = moment();
+                const lastMinuteDate = currenttimestamp.subtract({minute: 1});
+                console.log(lastMinuteDate, dataSourceTime);
+                if(lastMinuteDate.diff(dataSourceTime) >= 0){
+                    await saveToTimeseriesDB(element, alreadyExistingData);
+                }
+            });
+        } catch (err) {
+            console.log(err);
+        }
+    }
+
     return {
-        insertToDB,
+        insertToCache,
+        saveToTimeseriesDB,
+        scheduledDbOperation,
+        findTimeseriesDocument
     };
 }
 

@@ -37,7 +37,7 @@ const dbService = () => {
         // successfulDBStart();
         const filteredCollection = await checkIfCollectionExists(db, 'encrypted-timeseries-collection');
         if(!filteredCollection){
-          createCollection("encrypted-timeseries-collection", {
+          createCollection(db, "encrypted-timeseries-collection", {
             timeseries: {
               timeField: "ts",
               metaField: "source",
