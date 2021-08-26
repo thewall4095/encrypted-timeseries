@@ -84,6 +84,11 @@ io.on('connection', (socket) => {
     // console.log('message: ' + JSON.stringify(decryptedMessages));
     dbOperationService().insertToCache({ messagesCount : numMessages, corruptedMessagesCount: corruptedMessages, decryptedMessages : decryptedMessages});
   });
+
+  socket.on('chart_data', (msg) => {
+    io.emit('chart_data', msg);
+  });
+
 });
 
 dbService().connectDB();
