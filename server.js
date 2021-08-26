@@ -27,7 +27,7 @@ const bodyParserLimit = "100mb";
 const server = http.createServer(app);
 let io = socketIO(server, {
   cors: {
-    origin: "https://aureal.one",
+    origin: "https://encrypted-timeseries-frontend.web.app/",
     methods: ["GET", "POST"],
     allowedHeaders: ["my-custom-header"],
     credentials: true

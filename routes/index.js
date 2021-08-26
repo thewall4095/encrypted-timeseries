@@ -3,6 +3,7 @@ const indexRouter = express.Router();
 
 const { 
   getTimeseriesData,
+  getSpecificTimeData
 } = require('../controllers/data')
 
 /* GET home page. */
@@ -11,6 +12,8 @@ indexRouter.get("/", function (req, res, next) {
 });
 
 indexRouter.get("/getTimeseriesData", getTimeseriesData);
+indexRouter.get("/getSpecificTimeData", getSpecificTimeData);
+
 
 const routers = [
   {
