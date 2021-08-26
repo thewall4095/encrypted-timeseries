@@ -30,6 +30,7 @@ const dbOperationService = () => {
                 console.log(document.ts, 'after');
                 let insertResponse = await collection.insertOne(document);
                 if(insertResponse){
+                    delete document.data;
                     emitterService().emitToFrontend(document);
                     await redisOperationService().deleteWithKey(key);
                 }
