@@ -1,6 +1,7 @@
 const redis = require("redis");
 
 const client = redis.createClient({
+    // host: 'redis-server', //for docker
     port: 6379,
 });
 
@@ -11,7 +12,6 @@ const redisOperationService = () => {
     const save = async (key, value) => {
         try{
             let alreadyExistingData = await retrieve(key);
-            console.log(alreadyExistingData, 'alreadyExistingData');
             if(alreadyExistingData){
                 alreadyExistingData = JSON.parse(alreadyExistingData);
                 value['data'] = [...value['data'], ...alreadyExistingData.data];
@@ -46,7 +46,6 @@ const redisOperationService = () => {
                 if(err)
                     return reject(err);
                 else{
-                    // console.log(data, 'jerere');
                     return resolve(data);
                 }
             });

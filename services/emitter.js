@@ -8,7 +8,6 @@ const emitterService = () => {
         try {
             setInterval(() => {
                 const numMessages = getRandomInt(49, 499);
-                console.log(numMessages, 'numMessages');
                 let encryptedMessage = '';
                 for (var i = 0; i < numMessages; i++) {
                     const originalMessage = {
@@ -19,7 +18,6 @@ const emitterService = () => {
                     const sumCheckMessage = Object.assign(originalMessage, {
                         secret_key: encryptionService().createSHA256Hash(JSON.stringify(originalMessage))
                     });
-                    // console.log(sumCheckMessage);
                     encryptedMessage += encryptionService().encrypt(KEY, IV, JSON.stringify(sumCheckMessage)).encryptedData + '|';
                 }
                 socket.emit('message', encryptedMessage);

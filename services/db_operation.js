@@ -10,7 +10,6 @@ const dbOperationService = () => {
         const timestamp = moment().startOf('minute');
         const source = timestamp.format();
         const collectionTimestamp = timestamp.toDate();
-        console.log(moment(source).toDate());
         const document = {
             ts : collectionTimestamp,
             source: source,
@@ -18,16 +17,13 @@ const dbOperationService = () => {
             corruptedMessagesCount: data.corruptedMessagesCount,
             data: data.decryptedMessages
         }
-        let abc = await redisOperationService().save(source, document);
-        console.log(abc, 'saved data');
+        await redisOperationService().save(source, document);
     };
 
     const saveToTimeseriesDB = async (key, document) => {
         try {
             const collection = db.collection("encrypted-timeseries-collection");
-                console.log(document.ts, 'before');
                 document.ts = moment(document.ts).toDate();
-                console.log(document.ts, 'after');
                 let insertResponse = await collection.insertOne(document);
                 if(insertResponse){
                     delete document.data;
@@ -41,7 +37,6 @@ const dbOperationService = () => {
 
     const findTimeseriesDocument = async (source) => {
         const document = await db.collection("encrypted-timeseries-collection").findOne({ source: source });
-        console.log(document);
         return document;
     }
 
@@ -54,7 +49,6 @@ const dbOperationService = () => {
                 const dataSourceTime = moment(alreadyExistingData.source);
                 const currenttimestamp = moment();
                 const lastMinuteDate = currenttimestamp.subtract({minute: 1});
-                console.log(lastMinuteDate, dataSourceTime);
                 if(lastMinuteDate.diff(dataSourceTime) >= 0){
                     await saveToTimeseriesDB(element, alreadyExistingData);
                 }

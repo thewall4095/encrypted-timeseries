@@ -25,14 +25,11 @@ module.exports = {
             });
          }
     },
-
     getSpecificTimeData: async (req, res, next) => {
         try{
             const {timestamp} = req.query;
             if(timestamp){
-                console.log(timestamp);
                 const collection = db.collection("encrypted-timeseries-collection");
-                console.log(moment(timestamp).toDate());
                 const data = await collection.aggregate([
                     {$match: { ts: moment(timestamp).toDate() }},
                 ]).toArray();

@@ -28,13 +28,6 @@ const dbService = () => {
         await client.connect()
         console.log('Connected successfully to server')
         const db = client.db("encrypted-timeseries-db")
-        // db.createCollection
-        // const collection = db.collection("encrypted-timeseries-collection")
-        // console.log(db.listCollections().toArray());
-        // db.listCollections().toArray(function(err, collInfos) {
-        //   console.log(collInfos);
-        // });
-        // successfulDBStart();
         const filteredCollection = await checkIfCollectionExists(db, 'encrypted-timeseries-collection');
         if(!filteredCollection){
           createCollection(db, "encrypted-timeseries-collection", {
@@ -45,7 +38,6 @@ const dbService = () => {
             },
           });
         }
-        console.log(filteredCollection);
         return successfulDBStart();
         // return collection;
       } catch (err) {

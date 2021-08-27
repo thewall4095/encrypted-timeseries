@@ -60,10 +60,8 @@ io.on('connection', (socket) => {
   });
 
   socket.on('message', (msg) => {
-    // dbOperationService().insertToCache();
     const encryptedMessages = msg.split('|');
     const numMessages = encryptedMessages.length - 1; //since last element will be ''
-    console.log(numMessages, 'numMessages');
     let corruptedMessages = 0;
     let decryptedMessages = [];
     for (var i = 0; i < numMessages; i++) {
@@ -73,15 +71,12 @@ io.on('connection', (socket) => {
         origin:decryptedMessage.origin,
         destination:decryptedMessage.destination
       }
-      // console.log(decryptedMessage, JSON.stringify(originalMessage))
-      // console.log(decryptedMessage.secret_key, decryptedMessage, originalMessage)
       if(encryptionService().compareSHA256Hash(decryptedMessage.secret_key, JSON.stringify(originalMessage)))
         decryptedMessages.push(originalMessage)
       else{
         corruptedMessages+=1;
       }
     }
-    // console.log('message: ' + JSON.stringify(decryptedMessages));
     dbOperationService().insertToCache({ messagesCount : numMessages, corruptedMessagesCount: corruptedMessages, decryptedMessages : decryptedMessages});
   });
 
