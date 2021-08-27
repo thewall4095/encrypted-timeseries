@@ -49,7 +49,9 @@ On successful object data integrity validation, add a timestamp to that object a
 
 All the valid data saved should be displayed in a real-time manner on a small frontend app along with the success rate for data transmission and decoding. The frontend code is located at 
 
-### Run the app locally
+### To run the app locally
+- Install node and npm
+- Install and run redis server on machine
 - npm i
 - npm start
 
